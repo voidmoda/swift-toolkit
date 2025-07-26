@@ -245,7 +245,7 @@ public struct TextInteractionEvent {
     public let frame: CGRect
     
     /// Convenience accessor for the selected text
-    public var text: String { locator.text.highlight }
+    public var text: String { locator.text.highlight ?? "" }
     
     /// Convenience accessor for word count (distinguishes single word vs phrase)
     public var wordCount: Int { text.split(separator: " ").count }
@@ -351,21 +351,21 @@ class ReaderViewController: UIViewController {
         // Handle both word taps and phrase drags
         navigator.addObserver(.textInteraction { [weak self] event in
             if event.wordCount == 1 {
-                self?.handleWordTap(event)
+                await self?.handleWordTap(event)
             } else {
-                self?.handlePhraseSelection(event)
+                await self?.handlePhraseSelection(event)
             }
             return false // Allow other observers
         })
     }
     
-    private func handleWordTap(_ event: TextInteractionEvent) {
+    private func handleWordTap(_ event: TextInteractionEvent) async {
         // Quick dictionary lookup
         let popover = DictionaryPopoverController(word: event.text)
         popover.showFromPoint(event.location, in: view)
     }
     
-    private func handlePhraseSelection(_ event: TextInteractionEvent) {
+    private func handlePhraseSelection(_ event: TextInteractionEvent) async {
         // Phrase translation
         translationService.translatePhrase(event.text) { [weak self] translation in
             DispatchQueue.main.async {
@@ -397,7 +397,7 @@ class AdvancedReaderViewController: UIViewController {
             guard event.wordCount == 1 else { return false }
             
             if !self?.commonWords.contains(event.text.lowercased()) ?? true {
-                self?.showAdvancedDefinition(for: event.text, at: event.location)
+                await self?.showAdvancedDefinition(for: event.text, at: event.location)
             }
             return false
         })
@@ -406,13 +406,13 @@ class AdvancedReaderViewController: UIViewController {
         navigator.addObserver(.textInteraction { [weak self] event in
             guard event.wordCount >= 2 else { return false }
             
-            self?.translatePhrase(event.text, from: event.location)
+            await self?.translatePhrase(event.text, from: event.location)
             return false
         })
         
         // Universal analytics observer
         navigator.addObserver(.textInteraction { [weak self] event in
-            self?.analytics.trackTextInteraction(
+            await self?.analytics.trackTextInteraction(
                 text: event.text,
                 wordCount: event.wordCount,
                 location: event.locator,
@@ -436,16 +436,16 @@ class HighlightingReaderViewController: UIViewController {
         
         navigator.addObserver(.textInteraction { [weak self] event in
             // Handle the interaction
-            self?.processTextInteraction(event)
+            await self?.processTextInteraction(event)
             
             // Create visual feedback based on word count
-            self?.createVisualFeedback(for: event)
+            await self?.createVisualFeedback(for: event)
             
             return false
         })
     }
     
-    private func createVisualFeedback(for event: TextInteractionEvent) {
+    private func createVisualFeedback(for event: TextInteractionEvent) async {
         let style: Decoration.Style = {
             if event.wordCount == 1 {
                 return .highlight(tint: .systemBlue.withAlphaComponent(0.3))
@@ -484,7 +484,7 @@ class LanguageLearningObserver: InputObserving {
         self.difficultyAnalyzer = difficultyAnalyzer
     }
     
-    func didReceive(_ event: TextInteractionEvent) -> Bool {
+    func didReceive(_ event: TextInteractionEvent) async -> Bool {
         if event.wordCount == 1 {
             // Track vocabulary encounters
             let difficulty = difficultyAnalyzer.analyzeDifficulty(of: event.text)
