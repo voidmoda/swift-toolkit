@@ -59,4 +59,19 @@ final class CompositeInputObserver: InputObservable, InputObserving {
 
         return handled
     }
+
+    func didReceive(_ event: TextInteractionEvent) async -> Bool {
+        var handled = false
+
+        for (_, observer) in observers {
+            handled = await observer.didReceive(event)
+            if handled {
+                // Text interaction events don't have phases like pointer/key events,
+                // so we just stop here if handled.
+                break
+            }
+        }
+
+        return handled
+    }
 }

@@ -36,6 +36,9 @@ protocol EPUBSpreadViewDelegate: AnyObject {
     /// Called when the user triggered an input key event.
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: KeyEvent)
 
+    /// Called when the user triggered a text interaction event.
+    func spreadView(_ spreadView: EPUBSpreadView, didReceive event: TextInteractionEvent)
+
     /// Called when WKWebview terminates
     func spreadViewDidTerminate()
 }
@@ -410,6 +413,7 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         registerJSMessage(named: "selectionChanged") { [weak self] in self?.selectionDidChange($0) }
         registerJSMessage(named: "decorationActivated") { [weak self] in self?.decorationDidActivate($0) }
         registerJSMessage(named: "keyEventReceived") { [weak self] in self?.didReceiveKeyEvent($0) }
+        registerJSMessage(named: "textInteraction") { [weak self] in self?.didReceiveTextInteraction($0) }
     }
 
     /// Add the message handlers for incoming javascript events.
@@ -443,6 +447,35 @@ class EPUBSpreadView: UIView, Loggable, PageView {
         }
 
         delegate?.spreadView(self, didReceive: keyEvent)
+    }
+
+    private func didReceiveTextInteraction(_ event: Any) {
+        guard
+            let dict = event as? [String: Any],
+            let locatorDict = dict["locator"] as? [String: Any],
+            let rectDict = dict["rect"] as? [String: Any]
+        else {
+            return
+        }
+        
+        guard let locator = try? Locator(json: locatorDict) else {
+            return
+        }
+
+        let frame = CGRect(
+            x: rectDict["x"] as? Double ?? 0,
+            y: rectDict["y"] as? Double ?? 0,
+            width: rectDict["width"] as? Double ?? 0,
+            height: rectDict["height"] as? Double ?? 0
+        )
+
+        let textInteractionEvent = TextInteractionEvent(
+            locator: locator,
+            location: CGPoint(x: frame.midX, y: frame.midY),
+            frame: frame
+        )
+
+        delegate?.spreadView(self, didReceive: textInteractionEvent)
     }
 
     // MARK: - Decorator

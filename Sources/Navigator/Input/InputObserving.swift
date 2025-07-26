@@ -21,4 +21,17 @@ import Foundation
     /// - Returns: Indicates whether this observer consumed the event, which
     /// will not be forwarded to other observers.
     func didReceive(_ event: KeyEvent) async -> Bool
+
+    /// Called when receiving a text interaction event (word tap or phrase drag).
+    ///
+    /// - Returns: Indicates whether this observer consumed the event, which
+    /// will not be forwarded to other observers.
+    func didReceive(_ event: TextInteractionEvent) async -> Bool
+}
+
+public extension InputObserving {
+    /// Default implementation for text interaction events that doesn't consume the event.
+    func didReceive(_ event: TextInteractionEvent) async -> Bool {
+        false
+    }
 }

@@ -228,6 +228,20 @@ open class EPUBNavigatorViewController: InputObservableViewController,
 
     var config: Configuration { viewModel.config }
 
+    // MARK: - Text Interaction
+
+    private var _isTextInteractionEnabled: Bool = false
+
+    /// Enable text interaction detection (word tap and phrase drag)
+    public var isTextInteractionEnabled: Bool {
+        get { _isTextInteractionEnabled }
+        set {
+            _isTextInteractionEnabled = newValue
+            let script = "isTextInteractionEnabled = \(newValue);"
+            viewModel.delegate?.epubNavigatorViewModel(viewModel, runScript: script, in: .loadedResources)
+        }
+    }
+
     /// Creates a new instance of `EPUBNavigatorViewController`.
     ///
     /// - Parameters:
@@ -970,6 +984,18 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
 
     func spreadView(_ spreadView: EPUBSpreadView, didReceive event: KeyEvent) {
         Task {
+            _ = await inputObservers.didReceive(event)
+        }
+    }
+
+    func spreadView(_ spreadView: EPUBSpreadView, didReceive event: TextInteractionEvent) {
+        Task {
+            var event = event
+            event = TextInteractionEvent(
+                locator: publication.normalizeLocator(event.locator),
+                location: view.convert(event.location, from: spreadView),
+                frame: view.convert(event.frame, from: spreadView)
+            )
             _ = await inputObservers.didReceive(event)
         }
     }
