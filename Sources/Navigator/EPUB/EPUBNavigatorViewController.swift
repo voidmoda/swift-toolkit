@@ -237,7 +237,7 @@ open class EPUBNavigatorViewController: InputObservableViewController,
         get { _isTextInteractionEnabled }
         set {
             _isTextInteractionEnabled = newValue
-            let script = "isTextInteractionEnabled = \(newValue);"
+            let script = "readium.setTextInteractionEnabled(\(newValue));"
             viewModel.delegate?.epubNavigatorViewModel(viewModel, runScript: script, in: .loadedResources)
         }
     }

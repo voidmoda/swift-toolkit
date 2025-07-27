@@ -20,6 +20,10 @@ import {
   setCSSProperties,
 } from "./utils";
 import { getDecorations, registerTemplates } from "./decorator";
+import {
+  setTextInteractionEnabled,
+  getTextInteractionEnabled,
+} from "./gestures";
 
 // Public API used by the navigator.
 global.readium = {
@@ -39,4 +43,8 @@ global.readium = {
 
   // DOM
   findFirstVisibleLocator: findFirstVisibleLocator,
+
+  // text interaction
+  setTextInteractionEnabled: setTextInteractionEnabled,
+  getTextInteractionEnabled: getTextInteractionEnabled,
 };

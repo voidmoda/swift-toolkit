@@ -203,3 +203,15 @@ function createLocatorFromRange(range) {
     text: { highlight, before, after },
   };
 }
+
+/// Text Interaction API
+
+// Enable or disable text interaction detection
+export function setTextInteractionEnabled(enabled) {
+  isTextInteractionEnabled = enabled;
+}
+
+// Get current text interaction status
+export function getTextInteractionEnabled() {
+  return isTextInteractionEnabled;
+}
