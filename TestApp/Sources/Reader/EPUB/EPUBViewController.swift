@@ -70,6 +70,19 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
         super.init(navigator: navigator, publication: publication, bookId: bookId, books: books, bookmarks: bookmarks, highlights: highlights)
 
         navigator.delegate = self
+        
+        // Add text interaction observer first
+        navigator.addObserver(.textInteraction { [weak self] event in
+            self?.handleTextInteraction(event)
+            return false // Allow other observers
+        })
+    }
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        // Enable text interaction feature
+        navigator.isTextInteractionEnabled = true
     }
 
     override func presentUserPreferences() {
@@ -97,6 +110,17 @@ class EPUBViewController: VisualReaderViewController<EPUBNavigatorViewController
             saveHighlight(highlight)
             navigator.clearSelection()
         }
+    }
+    
+    // MARK: - Text Interaction
+    
+    private func handleTextInteraction(_ event: TextInteractionEvent) {
+        // Log the text and context from the locator
+        let text = event.locator.text
+        print("Text interaction:")
+        print("  Before: \(text.before ?? "nil")")
+        print("  Highlight: \(text.highlight ?? "nil")")
+        print("  After: \(text.after ?? "nil")")
     }
 
     // MARK: - Footnotes
