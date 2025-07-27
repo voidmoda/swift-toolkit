@@ -971,6 +971,9 @@ extension EPUBNavigatorViewController: EPUBSpreadViewDelegate {
             }
         }
 
+        // Restore text interaction state on new resources
+        script += "readium.setTextInteractionEnabled(\(isTextInteractionEnabled));\n"
+
         await spreadView.evaluateScript("(function() {\n\(script)\n})();")
     }
 
