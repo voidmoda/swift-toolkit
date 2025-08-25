@@ -181,20 +181,24 @@ function createLocatorFromRange(range) {
   const start = textRange.start.offset;
   const end = textRange.end.offset;
 
-  const snippetLength = 200;
+  // Use Intl.Segmenter for sentence-based context
+  const segmenter = new Intl.Segmenter(undefined, { granularity: "sentence" });
+  const segments = Array.from(segmenter.segment(text));
 
-  // Compute the text before the highlight, ignoring the first "word", which might be cut.
-  let before = text.slice(Math.max(0, start - snippetLength), start);
-  let firstWordStart = before.search(/\P{L}\p{L}/gu);
-  if (firstWordStart !== -1) {
-    before = before.slice(firstWordStart + 1);
-  }
+  let before = "";
+  let after = "";
 
-  // Compute the text after the highlight, ignoring the last "word", which might be cut.
-  let after = text.slice(end, Math.min(text.length, end + snippetLength));
-  let lastWordEnd = Array.from(after.matchAll(/\p{L}\P{L}/gu)).pop();
-  if (lastWordEnd !== undefined && lastWordEnd.index > 1) {
-    after = after.slice(0, lastWordEnd.index + 1);
+  // Find the sentence containing the highlight
+  for (const segment of segments) {
+    const segmentStart = segment.index;
+    const segmentEnd = segment.index + segment.segment.length;
+
+    if (segmentStart <= start && end <= segmentEnd) {
+      // Highlight is within this sentence - extract before and after parts
+      before = text.substring(segmentStart, start);
+      after = text.substring(end, segmentEnd);
+      break;
+    }
   }
 
   return {
